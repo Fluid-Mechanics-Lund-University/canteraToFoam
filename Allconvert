@@ -1,0 +1,31 @@
+./Allclean
+echo "Coverting single step"
+python convert.py ./mechs/singleStep/cantera/ ./mechs/singleStep/output
+echo "Done convert single step"
+echo
+
+
+echo "Coverting multi step gri"
+python convert.py ./mechs/multiStep/cantera/ ./mechs/multiStep/output
+echo "Done convert multi step gri"
+echo
+
+echo "Coverting reverse"
+python convert.py ./mechs/reverse/cantera/ ./mechs/multiStep/output
+echo "Done convert reverse"
+echo
+
+
+echo "Converting plog"
+echo "Converting pressure-dependent version"
+python convert.py ./mechs/multiStep/cantera/ ./mechs/multiStep/output
+echo
+echo "Converting plog mechanism and set the pressure to 15 bar"
+python convert.py ./mechs/plog/cantera/ ./mechs/plog/p15 --pressure 15
+echo
+echo "Converting plog mechanism and set the pressure to 60 bar"
+python convert.py ./mechs/plog/cantera/ ./mechs/plog/p60 --pressure 60
+echo
+echo "Converting plog mechanism and set the pressure to 120 bar"
+python convert.py ./mechs/plog/cantera/ ./mechs/plog/p120 --pressure 120
+echo "Done converting plog"

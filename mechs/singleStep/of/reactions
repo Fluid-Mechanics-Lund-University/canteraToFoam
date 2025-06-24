@@ -1,0 +1,14 @@
+reactions
+{
+    un-named-reaction-0
+    {
+        type            irreversibleArrhenius;
+        reaction        "C7H16^0.25 + 11O2^1.5 = 7CO2 + 8H2O";
+        A               2811706.626;
+        beta            0;
+        Ta              7940.357749;
+    }
+}
+Tlow            200;
+Thigh           6000;
+

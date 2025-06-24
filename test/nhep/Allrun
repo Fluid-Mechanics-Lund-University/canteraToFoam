@@ -1,0 +1,58 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Set application name
+application=$(getApplication)
+
+
+# run default openfoam version
+./Allclean
+cp -r ../../mechs/plog/of/reactions constant/
+cp -r ../../mechs/plog/of/thermos constant/
+runApplication $application
+python pp.py "(T OH NO N2O)" &&
+mv output.csv default.csv
+
+# run pressure at 15 bar
+./Allclean
+cp -r ../../mechs/plog/p15/reactions constant/
+cp -r ../../mechs/plog/p15/thermos constant/
+runApplication $application
+python pp.py "(T OH NO N2O)" &&
+mv output.csv p15.csv
+
+# run pressure at 60 bar
+./Allclean
+cp -r ../../mechs/plog/p60/reactions constant/
+cp -r ../../mechs/plog/p60/thermos constant/
+runApplication $application
+python pp.py "(T OH NO N2O)" &&
+mv output.csv p60.csv
+
+# run pressure at 120 bar
+./Allclean
+cp -r ../../mechs/plog/p120/reactions constant/
+cp -r ../../mechs/plog/p120/thermos constant/
+runApplication $application
+python pp.py "(T OH NO N2O)" &&
+mv output.csv p120.csv
+
+
+# run plog version
+./Allclean
+cp -r ../../mechs/plog/output/reactions constant/
+cp -r ../../mechs/plog/output/thermos constant/
+runApplication $application
+python pp.py "(T OH NO N2O)" &&
+mv output.csv plog.csv
+
+python plot.py
+
+
+
+
+
+#------------------------------------------------------------------------------

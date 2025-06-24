@@ -1,0 +1,42 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Run for openfoam version
+./Allclean
+
+# Set application name
+application=$(getApplication)
+
+# run openfoam version
+cp -r ../../mechs/multiStep/of/reactions constant/reactions
+cp -r ../../mechs/multiStep/of/thermos   constant/thermos
+
+runApplication $application
+
+python pp.py "(T CH4 OH O2 CH2O)"
+mv output.csv of.csv
+
+
+# Run for chemkinToFoam version
+./Allclean
+
+# Set application name
+application=$(getApplication)
+
+# run openfoam version
+cp -r ../../mechs/multiStep/output/reactions constant/reactions
+cp -r ../../mechs/multiStep/output/thermos   constant/thermos
+
+runApplication $application
+
+python pp.py "(T CH4 OH O2 CH2O)"
+mv output.csv ctf.csv
+
+python plot.py
+
+(cd validation && ./Allrun $*)
+
+#------------------------------------------------------------------------------

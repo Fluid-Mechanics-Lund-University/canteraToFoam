@@ -1,0 +1,12 @@
+echo "Cleaning up generated mechs..."
+
+rm -rf ./mechs/singleStep/output*
+rm -rf ./mechs/multiStep/output*
+rm -rf ./mechs/reverse/output*
+rm -rf ./mechs/plog/p[0-9]*
+rm -rf ./mechs/plog/output*
+./test/gri_wo_plog/Allclean
+./test/nhep/Allclean
+rm -rf ./test/gri_wo_plog/*.csv
+rm -rf ./test/nhep/*.csv
+rm -rf *.png
