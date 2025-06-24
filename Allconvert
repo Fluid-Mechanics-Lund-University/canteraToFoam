@@ -11,7 +11,7 @@ echo "Done convert multi step gri"
 echo
 
 echo "Coverting reverse"
-python convert.py ./mechs/reverse/cantera/ ./mechs/multiStep/output
+python convert.py ./mechs/reverse/cantera/ ./mechs/reverse/output
 echo "Done convert reverse"
 echo
 
