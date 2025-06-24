@@ -18,7 +18,7 @@ echo
 
 echo "Converting plog"
 echo "Converting pressure-dependent version"
-python convert.py ./mechs/multiStep/cantera/ ./mechs/multiStep/output
+python convert.py ./mechs/plog/cantera/ ./mechs/plog/output
 echo
 echo "Converting plog mechanism and set the pressure to 15 bar"
 python convert.py ./mechs/plog/cantera/ ./mechs/plog/p15 --pressure 15
