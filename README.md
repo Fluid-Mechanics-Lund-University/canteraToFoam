@@ -60,7 +60,7 @@ Results are saved in the `results/` directory with CSV files and plots.
 
 Comparison between `chemkinToFoam` and this converter. Ignition delay times show good agreement.
 
-![GRI Comparison](results/ctf_of_comp.png)
+![GRI Comparison](results/ctf_of_comps.png)
 
 ---
 
@@ -71,7 +71,7 @@ Source:
 
 Demonstrates how different reference pressures lead to varying behaviors in ignition delay.
 
-![PLOG Comparison](results/p_comp.png)
+![PLOG Comparison](results/p_comps.png)
 
 ---
 
