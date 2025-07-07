@@ -9,6 +9,10 @@ echo "Coverting multi step gri"
 python convert.py ./mechs/multiStep/cantera/ ./mechs/multiStep/output
 echo "Done convert multi step gri"
 echo
+echo "Converting multi step for OpenFOAM 7"
+python convert.py ./mechs/multiStep/cantera/ ./mechs/multiStep/of7 --version 7
+echo "Done convert multi step of7"
+echo
 
 echo "Coverting reverse"
 python convert.py ./mechs/reverse/cantera/ ./mechs/reverse/output
