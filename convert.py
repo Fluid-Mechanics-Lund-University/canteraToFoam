@@ -111,6 +111,102 @@ def species_block(spec, default, table):
     lines.append("}")
     return "\n".join(lines)
 
+
+def writeSpecies(gas):
+    """Return header lines listing all species in the mechanism."""
+    species_names = gas.species_names
+    lines = [
+        "species         %d ( %s );" % (gas.n_species, " ".join(species_names)),
+        "",
+    ]
+    return lines, species_names
+
+
+def elements_block_lines(gas):
+    """Return lines describing all elements used in the mechanism."""
+    element_names = gas.element_names
+    lines = ["elements", str(len(element_names)), "("]
+    lines += element_names
+    lines += [")", ";"]
+    return lines
+
+
+def writeThermo(gas, default_tp, table_tp, output_dir, species_names, header_lines=None):
+    """Write the thermos file for all species.
+
+    ``header_lines`` can be provided to prepend custom headers such as the
+    species list.  If ``None``, no header is written.
+    """
+    thermo_lines = list(header_lines or [])
+    for sp_name in species_names:
+        sp = gas.species(sp_name)
+        if sp.name == "HE":
+            continue
+        thermo_lines.append(species_block(sp, default_tp, table_tp))
+        thermo_lines.append("")
+    with open(os.path.join(output_dir, 'thermos'), 'w') as f:
+        f.write("\n".join(thermo_lines) + "\n")
+
+
+def writeReactions(
+    gas,
+    species_names,
+    output_dir,
+    pressure_atm=None,
+    header_lines=None,
+    elements_lines=None,
+    rtype_suffix="",
+):
+    """Write the reactions file using all reactions from the mechanism.
+
+    ``header_lines`` and ``elements_lines`` allow prepending species and
+    elements information when required (eg, for OpenFOAM 7).
+    """
+    rxn_lines = []
+    if header_lines:
+        rxn_lines.extend(header_lines)
+    if elements_lines:
+        rxn_lines.extend(elements_lines)
+        rxn_lines.append("")
+    rxn_lines += ['reactions', '{']
+    rxns = gas.reactions()
+    i = 0
+    out_idx = 0
+    while i < len(rxns):
+        rxn = rxns[i]
+        try:
+            if i + 1 < len(rxns) and is_reverse_pair(rxn, rxns[i + 1]):
+                rxn_lines.append(
+                    combined_reaction_block(
+                        rxn,
+                        rxns[i + 1],
+                        out_idx,
+                        species_names,
+                        rtype_suffix=rtype_suffix,
+                    )
+                )
+                i += 2
+            else:
+                rxn_lines.append(
+                    reaction_block(
+                        rxn,
+                        out_idx,
+                        species_names,
+                        pressure_pa=pressure_atm * ct.one_atm if pressure_atm else None,
+                        rtype_suffix=rtype_suffix,
+                    )
+                )
+                i += 1
+            out_idx += 1
+        except NotImplementedError as e:
+            print(f"Skipping reaction {i} ({rxn.equation}): {e}")
+            i += 1
+    rxn_lines.append('}')
+    rxn_lines.append('Tlow            250;')
+    rxn_lines.append('Thigh           5000;')
+    with open(os.path.join(output_dir, 'reactions'), 'w') as f:
+        f.write("\n".join(rxn_lines) + "\n")
+
 def arrhenius_params(rate):
     A = rate.pre_exponential_factor
     beta = rate.temperature_exponent
@@ -256,16 +352,22 @@ def base_block(rtype, rxn, rate):
         f"        Ta              {format_value(Ta)};",
     ]
 
-def reaction_block(rxn, index, species_names, pressure_pa=None):
+def reaction_block(
+    rxn,
+    index,
+    species_names,
+    pressure_pa=None,
+    rtype_suffix="",
+):
     only_one_third_body = is_one_third_body(rxn)
     
     prefix = 'reversible' if rxn.reversible else 'irreversible'
     if rxn.reaction_type == 'Arrhenius':
-        rtype = f'{prefix}Arrhenius'
+        rtype = f"{prefix}Arrhenius{rtype_suffix}"
         body = base_block(rtype, rxn, rxn.rate)
     elif rxn.reaction_type == 'three-body-Arrhenius':
         if rxn.input_data.get('type') == 'three-body':
-            rtype = f'{prefix}ThirdBodyArrhenius'
+            rtype = f"{prefix}ThirdBodyArrhenius{rtype_suffix}"
             body = base_block(rtype, rxn, rxn.rate)
             body += third_body_block(
                 rxn.third_body.efficiencies,
@@ -274,10 +376,10 @@ def reaction_block(rxn, index, species_names, pressure_pa=None):
                 only_one_third_body=only_one_third_body,
             )
         else:
-            rtype = f'{prefix}Arrhenius'
+            rtype = f"{prefix}Arrhenius{rtype_suffix}"
             body = base_block(rtype, rxn, rxn.rate)
     elif rxn.reaction_type == 'falloff-Troe':
-        rtype = f'{prefix}ArrheniusTroeFallOff'
+        rtype = f"{prefix}ArrheniusTroeFallOff{rtype_suffix}"
         body = [f"        type            {rtype};", f"        reaction        \"{format_equation(rxn)}\";"]
         body += k0_block(rxn.rate.low_rate)
         body += kinf_block(rxn.rate.high_rate)
@@ -296,7 +398,7 @@ def reaction_block(rxn, index, species_names, pressure_pa=None):
             only_one_third_body=only_one_third_body,
         )
     elif rxn.reaction_type == 'falloff-Lindemann':
-        rtype = f'{prefix}ArrheniusLindemannFallOff'
+        rtype = f"{prefix}ArrheniusLindemannFallOff{rtype_suffix}"
         body = [f"        type            {rtype};", f"        reaction        \"{format_equation(rxn)}\";"]
         body += k0_block(rxn.rate.low_rate)
         body += kinf_block(rxn.rate.high_rate)
@@ -310,12 +412,12 @@ def reaction_block(rxn, index, species_names, pressure_pa=None):
         )
     elif rxn.reaction_type == 'pressure-dependent-Arrhenius':
         if pressure_pa is None:
-            rtype = f'{prefix}ArrheniusPLOG'
+            rtype = f"{prefix}ArrheniusPLOG{rtype_suffix}"
             first_p, first_rate = rxn.rate.rates[0]
             body = base_block(rtype, rxn, first_rate)
             body += plog_block(rxn.rate.rates)
         else:
-            rtype = f'{prefix}Arrhenius'
+            rtype = f"{prefix}Arrhenius{rtype_suffix}"
             try:
                 A, beta, Ta = arrhenius_at_pressure(rxn.rate.rates, pressure_pa)
                 rate = ct.Arrhenius(A, beta, Ta * ct.gas_constant)
@@ -349,11 +451,17 @@ def is_reverse_pair(r1, r2):
         return True
     return same_stoich(r1.reactants, r2.products) and same_stoich(r1.products, r2.reactants)
 
-def combined_reaction_block(forward, reverse, index, species_names):
+def combined_reaction_block(
+    forward,
+    reverse,
+    index,
+    species_names,
+    rtype_suffix="",
+):
     if forward.reaction_type == 'Arrhenius':
-        rtype = 'nonEquilibriumReversibleArrhenius'
+        rtype = f"nonEquilibriumReversibleArrhenius{rtype_suffix}"
     elif forward.reaction_type == 'three-body-Arrhenius':
-        rtype = 'nonEquilibriumReversibleThirdBodyArrhenius'
+        rtype = f"nonEquilibriumReversibleThirdBodyArrhenius{rtype_suffix}"
     else:
         raise NotImplementedError(f"Non-equilibrium reversible type for {forward.reaction_type} not supported")
     lines = [f"    un-named-reaction-{index}", "    {"]
@@ -418,73 +526,52 @@ def is_one_third_body(rxn):
             return True
 
 
-def convert(cantera_dir, output_dir, pressure_atm=None):
+def default_converter(gas, default_tp, table_tp, output_dir, pressure_atm=None):
+    """Converter logic for OpenFOAM 8 and newer."""
+    header_lines, species_names = writeSpecies(gas)
+    writeThermo(gas, default_tp, table_tp, output_dir, species_names, header_lines)
+    with open(os.path.join(output_dir, 'elements'), 'w') as f:
+        f.write("\n".join(elements_block_lines(gas)) + "\n")
+    writeReactions(
+        gas,
+        species_names,
+        output_dir,
+        pressure_atm,
+        rtype_suffix="",
+    )
+
+
+def of7_converter(gas, default_tp, table_tp, output_dir, pressure_atm=None):
+    """Converter logic for OpenFOAM 7."""
+    header_lines, species_names = writeSpecies(gas)
+    # OF7 expects species and element information in the reactions file rather
+    # than in the thermos file.
+    writeThermo(gas, default_tp, table_tp, output_dir, species_names)
+    elements_lines = elements_block_lines(gas)
+    writeReactions(
+        gas,
+        species_names,
+        output_dir,
+        pressure_atm,
+        header_lines=header_lines,
+        elements_lines=elements_lines,
+        rtype_suffix="Reaction",
+    )
+
+
+def convert(cantera_dir, output_dir, pressure_atm=None, version=10):
     os.makedirs(output_dir, exist_ok=True)
     mech = os.path.join(cantera_dir, 'chem.yaml')
     transport = os.path.join(cantera_dir, 'transportProperties')
     default_tp, table_tp = parse_transport(transport)
     gas = ct.Solution(mech)
-    species_names = gas.species_names
 
-    # thermos file
-    thermo_lines = []
-    thermo_lines.append('species         %d ( %s );' % (gas.n_species, ' '.join(species_names)))
-    thermo_lines.append('')
-    for sp_name in species_names:
-        sp = gas.species(sp_name)
-        #print(f"species name:{sp.name} and molecular weight: {sp.molecular_weight:.12g}")
-        # print all entries of sp.thermo
-        if (sp.name == "HE"):
-            pass
-            # print all entries using getattr
-            # for attr in dir(sp.thermo):
-            #     if not attr.startswith('_'):
-            #         print(f"{attr}: {getattr(sp.thermo, attr)}")
-            #         print(sp.thermo.coeffs)
-        thermo_lines.append(species_block(sp, default_tp, table_tp))
-        thermo_lines.append('')
-    with open(os.path.join(output_dir, 'thermos'), 'w') as f:
-        f.write("\n".join(thermo_lines) + "\n")
-
-    # reactions file
-    rxn_lines = ['reactions', '{']
-    rxns = gas.reactions()
-    i = 0
-    out_idx = 0
-    while i < len(rxns):
-        
-        # if (is_one_third_body(rxns[i])):
-        #     print(rxns[i])
-        #     print(rxns[i].third_body.efficiencies)
-        #     print(extract_third_body_content(rxns[i].equation))
-
-        rxn = rxns[i]
-        #print(f"Processing reaction {i} ({rxn.equation}) of type {rxn.reaction_type}")
-        try:
-            if i + 1 < len(rxns) and is_reverse_pair(rxn, rxns[i + 1]):
-                rxn_lines.append(
-                    combined_reaction_block(rxn, rxns[i + 1], out_idx, species_names)
-                )
-                i += 2
-            else:
-                rxn_lines.append(
-                    reaction_block(
-                        rxn,
-                        out_idx,
-                        species_names,
-                        pressure_pa=pressure_atm * ct.one_atm if pressure_atm else None,
-                    )
-                )
-                i += 1
-            out_idx += 1
-        except NotImplementedError as e:
-            print(f"Skipping reaction {i} ({rxn.equation}): {e}")
-            i += 1
-    rxn_lines.append('}')
-    rxn_lines.append('Tlow            250;')
-    rxn_lines.append('Thigh           5000;')
-    with open(os.path.join(output_dir, 'reactions'), 'w') as f:
-        f.write("\n".join(rxn_lines) + "\n")
+    if int(version) == 7:
+        of7_converter(gas, default_tp, table_tp, output_dir, pressure_atm)
+    elif int(version) in (8, 9, 10):
+        default_converter(gas, default_tp, table_tp, output_dir, pressure_atm)
+    else:
+        raise ValueError("Unsupported OpenFOAM version: %s" % version)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert Cantera YAML mechanism to OpenFOAM format')
@@ -496,5 +583,16 @@ if __name__ == '__main__':
         default=None,
         help='Pressure in atm for evaluating pressure-dependent reactions',
     )
+    parser.add_argument(
+        '--version',
+        type=int,
+        default=10,
+        help='OpenFOAM major version (7-10)'
+    )
     args = parser.parse_args()
-    convert(args.cantera_dir, args.output_dir, pressure_atm=args.pressure)
+    convert(
+        args.cantera_dir,
+        args.output_dir,
+        pressure_atm=args.pressure,
+        version=args.version,
+    )
