@@ -140,8 +140,6 @@ def writeThermo(gas, default_tp, table_tp, output_dir, species_names, header_lin
     thermo_lines = list(header_lines or [])
     for sp_name in species_names:
         sp = gas.species(sp_name)
-        if sp.name == "HE":
-            continue
         thermo_lines.append(species_block(sp, default_tp, table_tp))
         thermo_lines.append("")
     with open(os.path.join(output_dir, 'thermos'), 'w') as f:
