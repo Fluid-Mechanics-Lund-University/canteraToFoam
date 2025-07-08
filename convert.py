@@ -154,6 +154,7 @@ def writeReactions(
     header_lines=None,
     elements_lines=None,
     rtype_suffix="",
+    thirdBodyCase="T"
 ):
     """Write the reactions file using all reactions from the mechanism.
 
@@ -181,6 +182,7 @@ def writeReactions(
                         out_idx,
                         species_names,
                         rtype_suffix=rtype_suffix,
+                        thirdBodyCase=thirdBodyCase
                     )
                 )
                 i += 2
@@ -192,6 +194,7 @@ def writeReactions(
                         species_names,
                         pressure_pa=pressure_atm * ct.one_atm if pressure_atm else None,
                         rtype_suffix=rtype_suffix,
+                        thirdBodyCase=thirdBodyCase
                     )
                 )
                 i += 1
@@ -356,6 +359,7 @@ def reaction_block(
     species_names,
     pressure_pa=None,
     rtype_suffix="",
+    thirdBodyCase="T"
 ):
     only_one_third_body = is_one_third_body(rxn)
     
@@ -365,7 +369,7 @@ def reaction_block(
         body = base_block(rtype, rxn, rxn.rate)
     elif rxn.reaction_type == 'three-body-Arrhenius':
         if rxn.input_data.get('type') == 'three-body':
-            rtype = f"{prefix}ThirdBodyArrhenius{rtype_suffix}"
+            rtype = f"{prefix}{thirdBodyCase}hirdBodyArrhenius{rtype_suffix}"
             body = base_block(rtype, rxn, rxn.rate)
             body += third_body_block(
                 rxn.third_body.efficiencies,
@@ -455,11 +459,12 @@ def combined_reaction_block(
     index,
     species_names,
     rtype_suffix="",
+    thirdBodyCase = "T"
 ):
     if forward.reaction_type == 'Arrhenius':
         rtype = f"nonEquilibriumReversibleArrhenius{rtype_suffix}"
     elif forward.reaction_type == 'three-body-Arrhenius':
-        rtype = f"nonEquilibriumReversibleThirdBodyArrhenius{rtype_suffix}"
+        rtype = f"nonEquilibriumReversible{thirdBodyCase}hirdBodyArrhenius{rtype_suffix}"
     else:
         raise NotImplementedError(f"Non-equilibrium reversible type for {forward.reaction_type} not supported")
     lines = [f"    un-named-reaction-{index}", "    {"]
@@ -554,6 +559,7 @@ def of7_converter(gas, default_tp, table_tp, output_dir, pressure_atm=None):
         header_lines=header_lines,
         elements_lines=elements_lines,
         rtype_suffix="Reaction",
+        thirdBodyCase = "t"
     )
 
 
