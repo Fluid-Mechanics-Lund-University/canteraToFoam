@@ -36,11 +36,9 @@ python convert.py <cantera_mech_dir> <output_dir> --pressure 60
 
 If no pressure is specified, pressure-dependent reactions are written using OpenFOAM’s `ArrheniusPLOG` format.
 
-> ⚠️ **Note:** OpenFOAM does not natively evaluate PLOG expressions. External libraries must be required, such as:
+> ⚠️ **Note:** OpenFOAM does not natively evaluate PLOG expressions. External libraries must be required, see:
 >
-> * [OpenFOAM-8 PLOG support](https://github.com/ZmengXu/PLOGArrheniusReactions)
-> * [OpenFOAM-10 PLOG support](https://github.com/yuchenzh/plogOF10)
-
+> * [OpenFOAM-7-OpenFOAM-10 PLOG support](https://github.com/Fluid-Mechanics-Lund-University/plogs)
 
 ---
 ## 🧪 Testing
