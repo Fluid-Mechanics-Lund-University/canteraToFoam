@@ -572,7 +572,7 @@ def convert(cantera_dir, output_dir, pressure_atm=None, version=10):
 
     if int(version) == 7:
         of7_converter(gas, default_tp, table_tp, output_dir, pressure_atm)
-    elif int(version) in (8, 9, 10):
+    elif int(version) in (8, 9, 10, 11, 12, 13):
         default_converter(gas, default_tp, table_tp, output_dir, pressure_atm)
     else:
         raise ValueError("Unsupported OpenFOAM version: %s" % version)
