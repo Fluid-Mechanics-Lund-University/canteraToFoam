@@ -2,7 +2,13 @@
 
 # canteraToFoam
 
+[![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-7-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-7)
+[![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-8-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-8)
+[![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-9-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-9)
 [![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-10-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-10)
+[![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-11-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-11)
+[![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-12-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-12)
+[![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-13-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-13)
 
 This repository provides a lightweight utility to convert **Cantera YAML chemical mechanisms** into **OpenFOAM** compatible files. It supports pressure-dependent reactions and offers options to either embed PLOG data or evaluate the mechanism at a specific reference pressure.
 
@@ -12,7 +18,8 @@ This repository provides a lightweight utility to convert **Cantera YAML chemica
 
 * **OpenFOAM-7-13**
   Most popular OpenFOAM foundation versions are all supported.
-  For OpenFOAM ESI versions, some little adjustments from the generated OpenFOAM-7 results should work.
+  
+  For ESI versions of OpenFOAM, results converted from OpenFOAM-7 can generally be used with only minor adjustments.
 * **Python 3** with the `Cantera` package installed
 
 ---
@@ -31,7 +38,7 @@ python convert.py <cantera_mech_dir> <output_dir>
 To evaluate pressure-dependent reactions at a specific pressure (in **bar**), use:
 
 ```bash
-python convert.py <cantera_mech_dir> <output_dir> --pressure 60
+python convert.py <cantera_mech_dir> <output_dir> --pressure 60 --version <target_openfoam_version_from_7_to_13>
 ```
 
 If no pressure is specified, pressure-dependent reactions are written using OpenFOAM’s `ArrheniusPLOG` format.
@@ -73,16 +80,6 @@ Demonstrates how different reference pressures lead to varying behaviors in igni
 
 ---
 
-## 🔭 Future Work
-
-* Extend support for PLOG mechanisms from **OpenFOAM-7** to **OpenFOAM-13**
-
-
----
-
-Here's a polished **Acknowledgements** section you can add to your `README.md`:
-
----
 
 ## 🙏 Acknowledgements
 
