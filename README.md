@@ -4,15 +4,15 @@
 
 [![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-10-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-10)
 
-This repository provides a lightweight utility to convert **Cantera YAML chemical mechanisms** into **OpenFOAM-10** compatible files. It supports pressure-dependent reactions and offers options to either embed PLOG data or evaluate the mechanism at a specific reference pressure.
+This repository provides a lightweight utility to convert **Cantera YAML chemical mechanisms** into **OpenFOAM** compatible files. It supports pressure-dependent reactions and offers options to either embed PLOG data or evaluate the mechanism at a specific reference pressure.
 
 ---
 
 ## 🛠 Requirements
 
-* **OpenFOAM-10**
-  (Test cases require the `chemFoam` application from this version)
-  Note: Support for other versions is on the way.
+* **OpenFOAM-7-13**
+  Most popular OpenFOAM foundation versions are all supported.
+  For OpenFOAM ESI versions, some little adjustments from the generated OpenFOAM-7 results should work.
 * **Python 3** with the `Cantera` package installed
 
 ---
@@ -38,7 +38,7 @@ If no pressure is specified, pressure-dependent reactions are written using Open
 
 > ⚠️ **Note:** OpenFOAM does not natively evaluate PLOG expressions. External libraries must be required, see:
 >
-> * [OpenFOAM-7-OpenFOAM-10 PLOG support](https://github.com/Fluid-Mechanics-Lund-University/plogs)
+> * [OpenFOAM-7-OpenFOAM-13 PLOG support](https://github.com/Fluid-Mechanics-Lund-University/plogs)
 
 ---
 ## 🧪 Testing
