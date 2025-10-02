@@ -9,6 +9,8 @@
 [![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-11-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-11)
 [![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-12-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-12)
 [![OpenFOAM version](https://img.shields.io/badge/OpenFOAM-13-brightgreen)](https://github.com/OpenFOAM/OpenFOAM-13)
+[![OpenFOAM](https://img.shields.io/badge/OpenFOAM-v2112-blue)](https://www.openfoam.com/news/main-news/openfoam-v2112)
+[![OpenFOAM](https://img.shields.io/badge/OpenFOAM-v2506-blue)](https://www.openfoam.com/news/main-news/openfoam-v2506)
 
 This repository provides a lightweight utility to convert **Cantera YAML chemical mechanisms** into **OpenFOAM** compatible files. It supports pressure-dependent reactions and offers options to either embed PLOG data or evaluate the mechanism at a specific reference pressure.
 
@@ -18,6 +20,8 @@ This repository provides a lightweight utility to convert **Cantera YAML chemica
 
 * **OpenFOAM-7-13**
   Most popular OpenFOAM foundation versions are all supported.
+* **Some ESI OpenFOAM versions (2112 and 2506)**
+  We have tested the code with OpenFOAM-v2112 and OpenFOAM-v2506, and it should work for all versions in between. Export the files in **OpenFOAM-7** format and you are ready to go.
   
   For ESI versions of OpenFOAM, results converted from OpenFOAM-7 can generally be used with only minor adjustments.
 * **Python 3** with the `Cantera` package installed
